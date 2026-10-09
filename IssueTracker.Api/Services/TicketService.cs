@@ -110,4 +110,28 @@ public class TicketService
 			Priority = ticket.Priority
 		};
 	}
+
+	public async Task<bool> DeleteTicket(int id)
+	{
+		string connectionString =
+			_configuration.GetConnectionString("DefaultConnection")!;
+
+		await using var connection =
+			new SqlConnection(connectionString);
+
+		string sql = """
+        DELETE FROM dbo.Tickets
+        WHERE Id = @Id;
+        """;
+
+		int rowsAffected =
+			await connection.ExecuteAsync(
+				sql,
+				new
+				{
+					Id = id
+				});
+
+		return rowsAffected > 0;
+	}
 }

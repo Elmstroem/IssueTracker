@@ -8,10 +8,6 @@ public static class TicketEndpoint
 	public static void MapTicketEndpoints(
 		this WebApplication app)
 	{
-		// ============================================
-		// GET - Hämta alla supportärenden
-		// ============================================
-
 		app.MapGet("/api/tickets", async (
 			TicketService ticketService) =>
 		{
@@ -21,10 +17,6 @@ public static class TicketEndpoint
 			return Results.Ok(tickets);
 		});
 
-
-		// ============================================
-		// POST - Skapa nytt supportärende
-		// ============================================
 
 		app.MapPost("/api/tickets", async (
 			CreateTicketDto createTicketDto,
@@ -46,12 +38,24 @@ public static class TicketEndpoint
 				$"/api/tickets/{createdTicket.Id}",
 				createdTicket);
 		});
+
+
+		app.MapDelete("/api/tickets/{id}", async (
+			int id,
+			TicketService ticketService) =>
+		{
+			bool deleted =
+				await ticketService.DeleteTicket(id);
+
+			if (!deleted)
+			{
+				return Results.NotFound();
+			}
+
+			return Results.NoContent();
+		});
 	}
 
-
-	// ============================================
-	// Validering
-	// ============================================
 
 	private static Dictionary<string, string[]>
 		ValidateCreateTicket(
@@ -60,8 +64,6 @@ public static class TicketEndpoint
 		var errors =
 			new Dictionary<string, string[]>();
 
-
-		// Titel
 		if (string.IsNullOrWhiteSpace(ticket.Title))
 		{
 			errors["Title"] =
@@ -75,8 +77,6 @@ public static class TicketEndpoint
 				["Titeln måste vara mellan 5 och 100 tecken."];
 		}
 
-
-		// Beskrivning
 		if (string.IsNullOrWhiteSpace(ticket.Description))
 		{
 			errors["Description"] =
@@ -90,8 +90,6 @@ public static class TicketEndpoint
 				["Beskrivningen måste vara mellan 10 och 1000 tecken."];
 		}
 
-
-		// Prioritet
 		if (string.IsNullOrWhiteSpace(ticket.Priority))
 		{
 			errors["Priority"] =
@@ -111,7 +109,6 @@ public static class TicketEndpoint
 					["Prioriteten måste vara Low, Normal eller High."];
 			}
 		}
-
 
 		return errors;
 	}

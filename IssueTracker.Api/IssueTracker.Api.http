@@ -17,3 +17,7 @@ Content-Type: application/json
   "description": "Dominoskrivaren ligger nere på T2, det är kaos.",
   "priority": "High"
 }
+
+### Radera supportärende
+
+DELETE {{IssueTracker_HostAddress}}/api/tickets/10
