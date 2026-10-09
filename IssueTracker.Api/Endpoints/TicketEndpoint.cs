@@ -1,4 +1,5 @@
-﻿using IssueTracker.Api.Services;
+﻿using IssueTracker.Api.Dtos;
+using IssueTracker.Api.Services;
 
 namespace IssueTracker.Api.Endpoints;
 
@@ -7,6 +8,10 @@ public static class TicketEndpoint
 	public static void MapTicketEndpoints(
 		this WebApplication app)
 	{
+		// ============================================
+		// GET - Hämta alla supportärenden
+		// ============================================
+
 		app.MapGet("/api/tickets", async (
 			TicketService ticketService) =>
 		{
@@ -15,5 +20,99 @@ public static class TicketEndpoint
 
 			return Results.Ok(tickets);
 		});
+
+
+		// ============================================
+		// POST - Skapa nytt supportärende
+		// ============================================
+
+		app.MapPost("/api/tickets", async (
+			CreateTicketDto createTicketDto,
+			TicketService ticketService) =>
+		{
+			var errors =
+				ValidateCreateTicket(createTicketDto);
+
+			if (errors.Count > 0)
+			{
+				return Results.ValidationProblem(errors);
+			}
+
+			var createdTicket =
+				await ticketService.CreateTicket(
+					createTicketDto);
+
+			return Results.Created(
+				$"/api/tickets/{createdTicket.Id}",
+				createdTicket);
+		});
+	}
+
+
+	// ============================================
+	// Validering
+	// ============================================
+
+	private static Dictionary<string, string[]>
+		ValidateCreateTicket(
+			CreateTicketDto ticket)
+	{
+		var errors =
+			new Dictionary<string, string[]>();
+
+
+		// Titel
+		if (string.IsNullOrWhiteSpace(ticket.Title))
+		{
+			errors["Title"] =
+				["Titeln får inte vara tom eller endast innehålla blanksteg."];
+		}
+		else if (
+			ticket.Title.Trim().Length < 5 ||
+			ticket.Title.Trim().Length > 100)
+		{
+			errors["Title"] =
+				["Titeln måste vara mellan 5 och 100 tecken."];
+		}
+
+
+		// Beskrivning
+		if (string.IsNullOrWhiteSpace(ticket.Description))
+		{
+			errors["Description"] =
+				["Beskrivningen får inte vara tom eller endast innehålla blanksteg."];
+		}
+		else if (
+			ticket.Description.Trim().Length < 10 ||
+			ticket.Description.Trim().Length > 1000)
+		{
+			errors["Description"] =
+				["Beskrivningen måste vara mellan 10 och 1000 tecken."];
+		}
+
+
+		// Prioritet
+		if (string.IsNullOrWhiteSpace(ticket.Priority))
+		{
+			errors["Priority"] =
+				["Du måste ange en prioritet."];
+		}
+		else
+		{
+			string priority =
+				ticket.Priority.Trim();
+
+			if (
+				priority != "Low" &&
+				priority != "Normal" &&
+				priority != "High")
+			{
+				errors["Priority"] =
+					["Prioriteten måste vara Low, Normal eller High."];
+			}
+		}
+
+
+		return errors;
 	}
 }

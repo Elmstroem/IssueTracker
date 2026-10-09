@@ -14,6 +14,11 @@ public class TicketService
 		_configuration = configuration;
 	}
 
+
+	// ============================================
+	// Hämta alla supportärenden
+	// ============================================
+
 	public async Task<IEnumerable<TicketDto>> GetTickets()
 	{
 		string connectionString =
@@ -46,5 +51,63 @@ public class TicketService
 			});
 
 		return ticketDtos;
+	}
+
+
+	// ============================================
+	// Skapa nytt supportärende
+	// ============================================
+
+	public async Task<TicketDto> CreateTicket(
+		CreateTicketDto createTicketDto)
+	{
+		string connectionString =
+			_configuration.GetConnectionString("DefaultConnection")!;
+
+		await using var connection =
+			new SqlConnection(connectionString);
+
+		string sql = """
+            INSERT INTO dbo.Tickets
+            (
+                Title,
+                Description,
+                Status,
+                Priority
+            )
+            OUTPUT
+                INSERTED.Id,
+                INSERTED.Title,
+                INSERTED.Description,
+                INSERTED.Status,
+                INSERTED.Priority
+            VALUES
+            (
+                @Title,
+                @Description,
+                @Status,
+                @Priority
+            );
+            """;
+
+		var ticket =
+			await connection.QuerySingleAsync<Ticket>(
+				sql,
+				new
+				{
+					Title = createTicketDto.Title.Trim(),
+					Description = createTicketDto.Description.Trim(),
+					Status = "Open",
+					Priority = createTicketDto.Priority.Trim()
+				});
+
+		return new TicketDto
+		{
+			Id = ticket.Id,
+			Title = ticket.Title,
+			Description = ticket.Description,
+			Status = ticket.Status,
+			Priority = ticket.Priority
+		};
 	}
 }

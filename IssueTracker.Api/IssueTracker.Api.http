@@ -1,12 +1,19 @@
-@IssueTracker.Api_HostAddress = http://localhost:8000
-
-GET {{IssueTracker.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
 @IssueTracker_HostAddress = https://localhost:8000
+
 
 ### Hämta alla supportärenden
 
 GET {{IssueTracker_HostAddress}}/api/tickets
 Accept: application/json
+
+
+### Skapa supportärende
+
+POST {{IssueTracker_HostAddress}}/api/tickets
+Content-Type: application/json
+
+{
+  "title": "Dominoskrivaren",
+  "description": "Dominoskrivaren ligger nere på T2, det är kaos.",
+  "priority": "High"
+}
