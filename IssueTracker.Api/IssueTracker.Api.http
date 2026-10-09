@@ -4,3 +4,9 @@ GET {{IssueTracker.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+@IssueTracker_HostAddress = https://localhost:8000
+
+### Hämta alla supportärenden
+
+GET {{IssueTracker_HostAddress}}/api/tickets
+Accept: application/json
