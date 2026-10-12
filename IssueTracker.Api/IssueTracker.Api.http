@@ -24,12 +24,12 @@ DELETE {{IssueTracker_HostAddress}}/api/tickets/10
 
 ### Uppdatera supportärende
 
-PUT {{IssueTracker_HostAddress}}/api/tickets/3
+PUT {{IssueTracker_HostAddress}}/api/tickets/4
 Content-Type: application/json
 
 {
-  "title": "A",
-  "description": "Kort",
-  "status": "Sleeping",
-  "priority": "Extreme"
+  "title": "Kan inte mitt lösenord",
+  "description": "Dole måste fixa mitt lösenord, tar ju åratal.",
+  "status": "Open",
+  "priority": "High"
 }
