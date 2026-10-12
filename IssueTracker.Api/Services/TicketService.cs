@@ -3,6 +3,7 @@ using IssueTracker.Api.Dtos;
 using IssueTracker.Api.Models;
 using Microsoft.Data.SqlClient;
 
+
 namespace IssueTracker.Api.Services;
 
 public class TicketService
@@ -168,5 +169,47 @@ public class TicketService
 				});
 
 		return rowsAffected > 0;
+	}
+
+	public async Task<TicketDto?> GetTicketById(int id)
+	{
+		string connectionString =
+			_configuration.GetConnectionString("DefaultConnection")!;
+
+		await using var connection =
+			new SqlConnection(connectionString);
+
+		string sql = """
+        SELECT
+            Id,
+            Title,
+            Description,
+            Status,
+            Priority
+        FROM dbo.Tickets
+        WHERE Id = @Id;
+        """;
+
+		var ticket =
+			await connection.QuerySingleOrDefaultAsync<Ticket>(
+				sql,
+				new
+				{
+					Id = id
+				});
+
+		if (ticket is null)
+		{
+			return null;
+		}
+
+		return new TicketDto
+		{
+			Id = ticket.Id,
+			Title = ticket.Title,
+			Description = ticket.Description,
+			Status = ticket.Status,
+			Priority = ticket.Priority
+		};
 	}
 }

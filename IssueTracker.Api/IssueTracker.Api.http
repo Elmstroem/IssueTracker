@@ -33,3 +33,16 @@ Content-Type: application/json
   "status": "Open",
   "priority": "High"
 }
+
+### PATCH - Ändra status
+
+PATCH {{IssueTracker_HostAddress}}/api/tickets/3
+Content-Type: application/json-patch+json
+
+[
+  {
+    "op": "replace",
+    "path": "/status",
+    "value": "Open"
+  }
+]

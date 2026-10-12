@@ -1,6 +1,6 @@
 ﻿using IssueTracker.Api.Dtos;
 using IssueTracker.Api.Services;
-
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 namespace IssueTracker.Api.Endpoints;
 
 public static class TicketEndpoint
@@ -97,6 +97,82 @@ public static class TicketEndpoint
 
 			return Results.NoContent();
 		});
+
+		app.MapPatch("/api/tickets/{id}", async (
+	int id,
+	JsonPatchDocument<UpdateTicketDto> patchDocument,
+	TicketService ticketService) =>
+		{
+			// Hämta ticketen som redan finns i databasen
+			var existingTicket =
+				await ticketService.GetTicketById(id);
+
+			if (existingTicket is null)
+			{
+				return Results.NotFound();
+			}
+
+
+			// Skapa ett objekt med ticketens nuvarande värden
+			var ticketToUpdate = new UpdateTicketDto
+			{
+				Title = existingTicket.Title,
+				Description = existingTicket.Description,
+				Status = existingTicket.Status,
+				Priority = existingTicket.Priority
+			};
+
+
+			// Samla eventuella fel från JSON Patch
+			var patchErrors =
+				new List<string>();
+
+			patchDocument.ApplyTo(
+				ticketToUpdate,
+				patchError =>
+				{
+					patchErrors.Add(
+						patchError.ErrorMessage);
+				});
+
+
+			if (patchErrors.Count > 0)
+			{
+				return Results.BadRequest(
+					new
+					{
+						Errors = patchErrors
+					});
+			}
+
+
+			// Återanvänd samma validering som PUT
+			var validationErrors =
+				ValidateUpdateTicket(
+					ticketToUpdate);
+
+			if (validationErrors.Count > 0)
+			{
+				return Results.ValidationProblem(
+					validationErrors);
+			}
+
+
+			// Spara den färdiga uppdateringen
+			bool updated =
+				await ticketService.UpdateTicket(
+					id,
+					ticketToUpdate);
+
+			if (!updated)
+			{
+				return Results.NotFound();
+			}
+
+
+			return Results.NoContent();
+		})
+	.Accepts<JsonPatchDocument<UpdateTicketDto>>("application/json-patch+json");
 	}
 
 
