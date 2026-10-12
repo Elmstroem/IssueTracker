@@ -8,6 +8,10 @@ public static class TicketEndpoint
 	public static void MapTicketEndpoints(
 		this WebApplication app)
 	{
+		// ============================================
+		// GET - Hämta alla supportärenden
+		// ============================================
+
 		app.MapGet("/api/tickets", async (
 			TicketService ticketService) =>
 		{
@@ -17,6 +21,10 @@ public static class TicketEndpoint
 			return Results.Ok(tickets);
 		});
 
+
+		// ============================================
+		// POST - Skapa supportärende
+		// ============================================
 
 		app.MapPost("/api/tickets", async (
 			CreateTicketDto createTicketDto,
@@ -40,6 +48,10 @@ public static class TicketEndpoint
 		});
 
 
+		// ============================================
+		// DELETE - Radera supportärende
+		// ============================================
+
 		app.MapDelete("/api/tickets/{id}", async (
 			int id,
 			TicketService ticketService) =>
@@ -54,8 +66,43 @@ public static class TicketEndpoint
 
 			return Results.NoContent();
 		});
+
+
+		// ============================================
+		// PUT - Uppdatera supportärende
+		// ============================================
+
+		app.MapPut("/api/tickets/{id}", async (
+			int id,
+			UpdateTicketDto updateTicketDto,
+			TicketService ticketService) =>
+		{
+			var errors =
+				ValidateUpdateTicket(updateTicketDto);
+
+			if (errors.Count > 0)
+			{
+				return Results.ValidationProblem(errors);
+			}
+
+			bool updated =
+				await ticketService.UpdateTicket(
+					id,
+					updateTicketDto);
+
+			if (!updated)
+			{
+				return Results.NotFound();
+			}
+
+			return Results.NoContent();
+		});
 	}
 
+
+	// ============================================
+	// VALIDERING - CREATE
+	// ============================================
 
 	private static Dictionary<string, string[]>
 		ValidateCreateTicket(
@@ -64,6 +111,8 @@ public static class TicketEndpoint
 		var errors =
 			new Dictionary<string, string[]>();
 
+
+		// Title
 		if (string.IsNullOrWhiteSpace(ticket.Title))
 		{
 			errors["Title"] =
@@ -77,6 +126,8 @@ public static class TicketEndpoint
 				["Titeln måste vara mellan 5 och 100 tecken."];
 		}
 
+
+		// Description
 		if (string.IsNullOrWhiteSpace(ticket.Description))
 		{
 			errors["Description"] =
@@ -90,6 +141,8 @@ public static class TicketEndpoint
 				["Beskrivningen måste vara mellan 10 och 1000 tecken."];
 		}
 
+
+		// Priority
 		if (string.IsNullOrWhiteSpace(ticket.Priority))
 		{
 			errors["Priority"] =
@@ -109,6 +162,97 @@ public static class TicketEndpoint
 					["Prioriteten måste vara Low, Normal eller High."];
 			}
 		}
+
+
+		return errors;
+	}
+
+
+	// ============================================
+	// VALIDERING - UPDATE
+	// ============================================
+
+	private static Dictionary<string, string[]>
+		ValidateUpdateTicket(
+			UpdateTicketDto ticket)
+	{
+		var errors =
+			new Dictionary<string, string[]>();
+
+
+		// Title
+		if (string.IsNullOrWhiteSpace(ticket.Title))
+		{
+			errors["Title"] =
+				["Titeln får inte vara tom eller endast innehålla blanksteg."];
+		}
+		else if (
+			ticket.Title.Trim().Length < 5 ||
+			ticket.Title.Trim().Length > 100)
+		{
+			errors["Title"] =
+				["Titeln måste vara mellan 5 och 100 tecken."];
+		}
+
+
+		// Description
+		if (string.IsNullOrWhiteSpace(ticket.Description))
+		{
+			errors["Description"] =
+				["Beskrivningen får inte vara tom eller endast innehålla blanksteg."];
+		}
+		else if (
+			ticket.Description.Trim().Length < 10 ||
+			ticket.Description.Trim().Length > 1000)
+		{
+			errors["Description"] =
+				["Beskrivningen måste vara mellan 10 och 1000 tecken."];
+		}
+
+
+		// Status
+		if (string.IsNullOrWhiteSpace(ticket.Status))
+		{
+			errors["Status"] =
+				["Du måste ange en status."];
+		}
+		else
+		{
+			string status =
+				ticket.Status.Trim();
+
+			if (
+				status != "Open" &&
+				status != "InProgress" &&
+				status != "Closed")
+			{
+				errors["Status"] =
+					["Status måste vara Open, InProgress eller Closed."];
+			}
+		}
+
+
+		// Priority
+		if (string.IsNullOrWhiteSpace(ticket.Priority))
+		{
+			errors["Priority"] =
+				["Du måste ange en prioritet."];
+		}
+		else
+		{
+			string priority =
+				ticket.Priority.Trim();
+
+			if (
+				priority != "Low" &&
+				priority != "Normal" &&
+				priority != "High")
+			{
+				errors["Priority"] =
+					["Prioriteten måste vara Low, Normal eller High."];
+			}
+		}
+
 
 		return errors;
 	}

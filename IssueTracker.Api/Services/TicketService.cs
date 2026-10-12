@@ -134,4 +134,39 @@ public class TicketService
 
 		return rowsAffected > 0;
 	}
+
+	public async Task<bool> UpdateTicket(
+	int id,
+	UpdateTicketDto updateTicketDto)
+	{
+		string connectionString =
+			_configuration.GetConnectionString("DefaultConnection")!;
+
+		await using var connection =
+			new SqlConnection(connectionString);
+
+		string sql = """
+        UPDATE dbo.Tickets
+        SET
+            Title = @Title,
+            Description = @Description,
+            Status = @Status,
+            Priority = @Priority
+        WHERE Id = @Id;
+        """;
+
+		int rowsAffected =
+			await connection.ExecuteAsync(
+				sql,
+				new
+				{
+					Id = id,
+					Title = updateTicketDto.Title.Trim(),
+					Description = updateTicketDto.Description.Trim(),
+					Status = updateTicketDto.Status.Trim(),
+					Priority = updateTicketDto.Priority.Trim()
+				});
+
+		return rowsAffected > 0;
+	}
 }

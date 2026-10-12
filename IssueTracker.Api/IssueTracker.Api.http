@@ -21,3 +21,15 @@ Content-Type: application/json
 ### Radera supportärende
 
 DELETE {{IssueTracker_HostAddress}}/api/tickets/10
+
+### Uppdatera supportärende
+
+PUT {{IssueTracker_HostAddress}}/api/tickets/3
+Content-Type: application/json
+
+{
+  "title": "A",
+  "description": "Kort",
+  "status": "Sleeping",
+  "priority": "Extreme"
+}
